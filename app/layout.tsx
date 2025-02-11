@@ -27,6 +27,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <h1 id="main-title">Figgerit Builder</h1>
         {children}
       </body>
     </html>
