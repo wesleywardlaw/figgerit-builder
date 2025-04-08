@@ -9,6 +9,7 @@ import Saying from "./models/Saying";
 import { SayingSchema } from "./schemas/saying";
 import { Figgerit } from "@/types/figgert";
 import { findCompleteFiggerit } from "./utils/findCompleteFiggerit";
+import { MatchResult } from "@/types/matchresult";
 
 type SubmitDataResult = {
   errors?: Partial<Record<string, string[]>>;
@@ -70,10 +71,7 @@ export async function createFiggerits(
     await connectToDatabase();
 
     if (numFiggerits < 1) {
-      return {
-        success: false,
-        error: "Number of figgerits must be at least 1",
-      };
+      return { success: false, error: "Number of figgerits must be at least 1" };
     }
 
     const sayingCount = await Saying.countDocuments();
@@ -82,45 +80,63 @@ export async function createFiggerits(
     }
 
     const figgerits: Figgerit[] = [];
-    const maxAttempts = numFiggerits * 3;
+    const usedRiddleIds = new Set<string>(); // Track used riddles
+    const maxAttempts = numFiggerits * 1000;
     let attempts = 0;
 
     while (figgerits.length < numFiggerits && attempts < maxAttempts) {
       attempts++;
       console.log(`\nAttempt ${attempts}/${maxAttempts}`);
 
-      // Get random saying
-      const randomSaying = await Saying.aggregate([{ $sample: { size: 1 } }]);
+      const randomSaying = await Saying.aggregate([{ $sample: { size: 1 } }]).exec();
       if (!randomSaying[0]) continue;
 
-      const saying = randomSaying[0];
-      console.log("Selected saying:", saying.saying);
+      const saying = {
+        text: randomSaying[0].saying,
+        _id: randomSaying[0]._id.toString(),
+      };
 
-      // Get random riddles
-      const randomRiddles = await Riddle.aggregate([
-        { $sample: { size: 28 } }
-      ]);
+      console.log("Selected saying:", saying.text);
+
+      // Fetch random riddles ensuring they haven't been used before
+      let randomRiddles = await Riddle.aggregate([{ $sample: { size: riddlesPerAttempt } }]).exec();
+      randomRiddles = randomRiddles.filter((r) => !usedRiddleIds.has(r._id.toString()));
 
       if (randomRiddles.length < 28) {
-        return { success: false, error: "Insufficient riddles in database" };
+        return { success: false, error: "Insufficient unique riddles in database" };
       }
 
       console.log("\nRandom riddles from database:");
-      randomRiddles.forEach((r, i) => {
-        console.log(`${i + 1}. ${r.word} (${r.clue})`);
-      });
+      randomRiddles.forEach((r, i) => console.log(`${i + 1}. ${r.word} (${r.clue})`));
 
-      const solution = findCompleteFiggerit(randomRiddles, saying.saying);
+      const plainRiddles = randomRiddles.map((r) => ({
+        word: r.word,
+        clue: r.clue,
+        _id: r._id.toString(),
+      }));
+
+      const solution = findCompleteFiggerit(plainRiddles, saying.text);
 
       if (solution) {
         console.log("Found solution!");
-        figgerits.push({
-          saying: {
-            text: saying.saying,
-            _id: saying._id,
+
+        const serializedSolution: MatchResult[] = solution.map((match) => ({
+          answer: match.answer,
+          letterPositions: match.letterPositions,
+          riddle: {
+            clue: match.riddle.clue,
+            word: match.riddle.word,
+            _id: match.riddle._id.toString(),
           },
-          matches: solution,
+        }));
+
+        figgerits.push({
+          saying,
+          matches: serializedSolution,
         });
+
+        // Mark only used riddles as used
+        solution.forEach((match) => usedRiddleIds.add(match.riddle._id.toString()));
       } else {
         console.log("No solution found for this saying");
       }
@@ -136,6 +152,8 @@ export async function createFiggerits(
         error: `Could only create ${figgerits.length} of ${numFiggerits} requested figgerits`,
       };
     }
+
+    console.log(figgerits);
 
     return { success: true, figgerits };
   } catch (error: unknown) {
