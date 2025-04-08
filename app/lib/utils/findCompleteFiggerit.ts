@@ -1,21 +1,24 @@
 import { LetterPosition, MatchResult } from "@/types/matchresult";
 
 
+
+
 export function findCompleteFiggerit(
     riddles: Array<{ clue: string; word: string; _id: string }>, 
     saying: string
 ): MatchResult[] | null {
     const cleanSaying = saying.toUpperCase().replace(/[^A-Z]/g, '');
-    const sayingLength = cleanSaying.length;
+    const sayingLetters = new Set(cleanSaying);
     
-    // Track which positions are still available
-    const availablePositions = new Set<number>();
-    for (let i = 0; i < sayingLength; i++) {
-        availablePositions.add(i);
-    }
+    console.log(`Processing saying: "${saying}" (cleaned: "${cleanSaying}")`);
+    console.log(`Saying length: ${cleanSaying.length}`);
     
-    // Create letter map for quick lookups
+    const solution: MatchResult[] = [];
+    let usedLetters = new Set<string>();
+    let usedPositions = new Set<number>();
     const letterMap = new Map<string, number[]>();
+    
+    // Create a map of letters to their positions in the saying
     [...cleanSaying].forEach((letter, index) => {
         if (!letterMap.has(letter)) {
             letterMap.set(letter, []);
@@ -23,70 +26,73 @@ export function findCompleteFiggerit(
         letterMap.get(letter)?.push(index);
     });
     
-    const solution: MatchResult[] = [];
+    console.log(`Letter map: ${JSON.stringify(Object.fromEntries(letterMap))}`);
     
-    // Try each riddle as a potential part of the solution
+    // Try to find a solution that uses all positions
     for (const riddle of riddles) {
-        // Skip if we already have 7 words
         if (solution.length >= 7) break;
         
         const cleanAnswer = riddle.word.toUpperCase().replace(/[^A-Z]/g, '');
+        const answerLetters = new Set(cleanAnswer);
         
-        // Quick check if word might work (has all needed letters)
-        if (![...cleanAnswer].every(letter => letterMap.has(letter))) {
+        // Ensure word only contains letters from the saying
+        if (![...answerLetters].every(letter => sayingLetters.has(letter))) {
             continue;
         }
         
-        // Try to find valid positions for this word
         const letterPositions: LetterPosition[] = [];
         const tempUsed = new Set<number>();
-        let valid = true;
         
+        // Try to use unused positions first
         for (const letter of cleanAnswer) {
             const possiblePositions = letterMap.get(letter) || [];
-            let foundPosition = false;
             
-            for (const pos of possiblePositions) {
-                // Check if position is available and the letter at this position matches
-                if (availablePositions.has(pos) && !tempUsed.has(pos) && cleanSaying[pos] === letter) {
-                    letterPositions.push({ letter, position: pos });
-                    tempUsed.add(pos);
-                    foundPosition = true;
-                    break;
-                }
+            // First try to find an unused position
+            let position = possiblePositions.find(pos => !usedPositions.has(pos) && !tempUsed.has(pos));
+            
+            // If no unused position is available, use any available position
+            if (position === undefined) {
+                position = possiblePositions.find(pos => !tempUsed.has(pos)) ?? possiblePositions[0];
             }
             
-            if (!foundPosition) {
-                valid = false;
-                break;
+            if (position !== undefined) {
+                letterPositions.push({ letter, position });
+                tempUsed.add(position);
             }
         }
         
-        if (valid) {
-            // Add this word to our solution
-            solution.push({
-                answer: riddle.word,
-                letterPositions: letterPositions.sort((a, b) => a.position - b.position),
-                riddle: {
-                    clue: riddle.clue,
-                    word: riddle.word,
-                    _id: riddle._id
-                }
-            });
-            
-            // Remove used positions from available pool
-            letterPositions.forEach(lp => availablePositions.delete(lp.position));
-        }
+        // Add this word to our solution
+        solution.push({
+            answer: riddle.word,
+            letterPositions,
+            riddle: {
+                clue: riddle.clue,
+                word: riddle.word,
+                _id: riddle._id
+            }
+        });
+        
+        // Track used letters and positions
+        cleanAnswer.split('').forEach(letter => usedLetters.add(letter));
+        letterPositions.forEach(lp => usedPositions.add(lp.position));
+        
+        console.log(`Added word: ${riddle.word}, Used positions: ${usedPositions.size}/${cleanSaying.length}`);
     }
     
-    // Check if we have a complete solution
-    const totalPositionsUsed = solution
-        .flatMap(match => match.letterPositions)
-        .length;
-    console.log("solution", solution)    
-    if (solution.length === 7 && totalPositionsUsed === sayingLength) {
+    // Ensure all letters from the saying are used at least once AND all positions are used
+    const allPositionsUsed = usedPositions.size === cleanSaying.length;
+    const allLettersUsed = [...sayingLetters].every(letter => usedLetters.has(letter));
+    
+    console.log(`All positions used: ${allPositionsUsed} (${usedPositions.size}/${cleanSaying.length})`);
+    console.log(`All letters used: ${allLettersUsed}`);
+    console.log(`Solution length: ${solution.length}`);
+    
+    if (allLettersUsed && allPositionsUsed && solution.length === 7) {
+        console.log("Found a valid solution!");
         return solution;
     }
     
+    console.log("No valid solution found");
     return null;
 }
+
