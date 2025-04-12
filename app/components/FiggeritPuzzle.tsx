@@ -22,7 +22,7 @@ const FiggeritPuzzle: React.FC<FiggeritPuzzleProps> = ({ data, saying }) => {
               {idx + 1}. {item.riddle.clue}
             </div>
 
-            {/* Right: Answer blanks and saying positions */}
+            {/* Right: Answer blanks and positions */}
             <div className="space-y-1">
               <div className="flex flex-wrap gap-2">
                 {(() => {
@@ -51,23 +51,25 @@ const FiggeritPuzzle: React.FC<FiggeritPuzzleProps> = ({ data, saying }) => {
 
       {/* Saying layout */}
       <div className="mt-10">
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-2">
           {(() => {
             let positionCounter = 1;
-            return saying.text.split("").map((char, i) => {
-              if (char === " ") {
-                return <div key={i} className="w-3" />;
-              } else {
-                const pos = positionCounter;
-                positionCounter++;
-                return (
-                  <div key={i} className="flex flex-col items-center w-6">
-                    <div className="h-8 border-b-2 border-gray-800 text-xl w-full text-center" />
-                    <div className="text-sm text-gray-600">{pos}</div>
-                  </div>
-                );
-              }
-            });
+            const words = saying.text.split(" ");
+            return words.map((word, wordIdx) => (
+              <div key={wordIdx} className="flex gap-1">
+                {word.split("").map((char, i) => {
+                  const pos = positionCounter++;
+                  return (
+                    <div key={i} className="flex flex-col items-center w-6">
+                      <div className="h-8 border-b-2 border-gray-800 text-xl w-full text-center" />
+                      <div className="text-sm text-gray-600">{pos}</div>
+                    </div>
+                  );
+                })}
+                {/* Spacer after word (except last) */}
+                {wordIdx !== words.length - 1 && <div className="w-3" />}
+              </div>
+            ));
           })()}
         </div>
       </div>
