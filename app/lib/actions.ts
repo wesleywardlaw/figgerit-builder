@@ -7,7 +7,7 @@ import Riddle from "./models/Riddle";
 import { RiddleSchema } from "./schemas/riddle";
 import Saying from "./models/Saying";
 import { SayingSchema } from "./schemas/saying";
-import { Figgerit } from "@/types/figgert";
+import { Figgerit } from "@/types/figgerit";
 import { findCompleteFiggerit } from "./utils/findCompleteFiggerit";
 import { MatchResult } from "@/types/matchresult";
 

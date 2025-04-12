@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createFiggerits } from '../lib/actions';
-import { Figgerit } from '@/types/figgert';
+import { Figgerit } from '@/types/figgerit';
 import FiggeritPuzzle from '../components/FiggeritPuzzle';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -22,6 +22,7 @@ const Generate = () => {
 
   const generateFiggerits = async () => {
     const result = await createFiggerits(4, 115);
+    console.log('Generated Figgerits:', result); // Log the generated figgerits for debugging
     if (result.figgerits) {
       setFiggerits(result.figgerits);
     }
