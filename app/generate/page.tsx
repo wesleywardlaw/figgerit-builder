@@ -21,7 +21,7 @@ const Generate = () => {
   const titlePageRef = useRef<HTMLDivElement | null>(null); // Ref for title page
 
   const generateFiggerits = async () => {
-    const result = await createFiggerits(4, 115);
+    const result = await createFiggerits(4, 115, 200);
     console.log('Generated Figgerits:', result); // Log the generated figgerits for debugging
     if (result.figgerits) {
       setFiggerits(result.figgerits);

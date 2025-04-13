@@ -10,6 +10,8 @@ import { SayingSchema } from "./schemas/saying";
 import { Figgerit } from "@/types/figgerit";
 import { findCompleteFiggerit } from "./utils/findCompleteFiggerit";
 import { MatchResult } from "@/types/matchresult";
+import FiggeritModel from "./models/Figgerit";
+
 
 type SubmitDataResult = {
   errors?: Partial<Record<string, string[]>>;
@@ -65,7 +67,8 @@ export async function submitSaying(data: { saying: string }) {
 
 export async function createFiggerits(
   numFiggerits: number = 6,
-  riddlesPerAttempt: number = 2000
+  riddlesPerAttempt: number = 2000,
+  volume: number
 ): Promise<{ success: boolean; figgerits?: Figgerit[]; error?: string }> {
   try {
     await connectToDatabase();
@@ -74,13 +77,15 @@ export async function createFiggerits(
       return { success: false, error: "Number of figgerits must be at least 1" };
     }
 
-    const sayingCount = await Saying.countDocuments();
+    const sayingCount = await Saying.countDocuments({
+      $or: [{ volumes: { $exists: false } }, { volumes: { $nin: [volume] } }],
+    });
     if (sayingCount === 0) {
-      return { success: false, error: "No sayings found in database" };
+      return { success: false, error: "No unused sayings found for this volume" };
     }
 
     const figgerits: Figgerit[] = [];
-    const usedRiddleIds = new Set<string>(); // Track used riddles
+    const usedRiddleIds = new Set<string>();
     const maxAttempts = numFiggerits * 1000;
     let attempts = 0;
 
@@ -88,7 +93,11 @@ export async function createFiggerits(
       attempts++;
       console.log(`\nAttempt ${attempts}/${maxAttempts}`);
 
-      const randomSaying = await Saying.aggregate([{ $sample: { size: 1 } }]).exec();
+      const randomSaying = await Saying.aggregate([
+        { $match: { $or: [{ volumes: { $exists: false } }, { volumes: { $nin: [volume] } }] } },
+        { $sample: { size: 1 } },
+      ]).exec();
+
       if (!randomSaying[0]) continue;
 
       const saying = {
@@ -98,16 +107,16 @@ export async function createFiggerits(
 
       console.log("Selected saying:", saying.text);
 
-      // Fetch random riddles ensuring they haven't been used before
-      let randomRiddles = await Riddle.aggregate([{ $sample: { size: riddlesPerAttempt } }]).exec();
+      let randomRiddles = await Riddle.aggregate([
+        { $match: { $or: [{ volumes: { $exists: false } }, { volumes: { $nin: [volume] } }] } },
+        { $sample: { size: riddlesPerAttempt } },
+      ]).exec();
+
       randomRiddles = randomRiddles.filter((r) => !usedRiddleIds.has(r._id.toString()));
 
       if (randomRiddles.length < 28) {
         return { success: false, error: "Insufficient unique riddles in database" };
       }
-
-      console.log("\nRandom riddles from database:");
-      randomRiddles.forEach((r, i) => console.log(`${i + 1}. ${r.word} (${r.clue})`));
 
       const plainRiddles = randomRiddles.map((r) => ({
         word: r.word,
@@ -130,13 +139,32 @@ export async function createFiggerits(
           },
         }));
 
-        figgerits.push({
+        const newFiggerit = {
+          volume,
           saying,
           matches: serializedSolution,
-        });
+        };
 
-        // Mark only used riddles as used
-        solution.forEach((match) => usedRiddleIds.add(match.riddle._id.toString()));
+        figgerits.push(newFiggerit);
+
+        await FiggeritModel.create(newFiggerit);
+
+       // Check if Saying is being updated
+const sayingUpdateResult = await Saying.updateOne(
+  { _id: saying._id },
+  { $addToSet: { volumes: volume } }
+);
+console.log("Saying update result:", sayingUpdateResult);
+
+// Check if Riddles are being updated
+for (const match of solution) {
+  const riddleUpdateResult = await Riddle.updateOne(
+    { _id: match.riddle._id },
+    { $addToSet: { volumes: volume } }
+  );
+  console.log(`Riddle ${match.riddle._id} update result:`, riddleUpdateResult);
+  usedRiddleIds.add(match.riddle._id.toString());
+}
       } else {
         console.log("No solution found for this saying");
       }
@@ -150,10 +178,9 @@ export async function createFiggerits(
       return {
         success: false,
         error: `Could only create ${figgerits.length} of ${numFiggerits} requested figgerits`,
+        figgerits,
       };
     }
-
-    console.log(figgerits);
 
     return { success: true, figgerits };
   } catch (error: unknown) {
