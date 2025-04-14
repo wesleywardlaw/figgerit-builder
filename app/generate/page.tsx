@@ -7,7 +7,7 @@ import FiggeritPuzzle from '../components/FiggeritPuzzle';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
-// Utility function to chunk an array into groups of `size`
+// Utility function to chunk puzzles into groups of 4
 const chunkArray = <T,>(arr: T[], size: number): T[][] => {
   return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
     arr.slice(i * size, i * size + size)
@@ -16,13 +16,13 @@ const chunkArray = <T,>(arr: T[], size: number): T[][] => {
 
 const Generate = () => {
   const [figgerits, setFiggerits] = useState<Figgerit[]>([]);
-  const [showTitlePage, setShowTitlePage] = useState<boolean>(true); // Boolean to control title page visibility
-  const pageRefs = useRef<(HTMLDivElement | null)[]>([]); // Correctly typed
-  const titlePageRef = useRef<HTMLDivElement | null>(null); // Ref for title page
+  const [showTitlePage, setShowTitlePage] = useState(true);
+  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const titlePageRef = useRef<HTMLDivElement | null>(null);
+  const answersRef = useRef<HTMLDivElement | null>(null); // Only one grouped answer section now
 
   const generateFiggerits = async () => {
-    const result = await createFiggerits(4, 115, 200);
-    console.log('Generated Figgerits:', result); // Log the generated figgerits for debugging
+    const result = await createFiggerits(4, 115, 700);
     if (result.figgerits) {
       setFiggerits(result.figgerits);
     }
@@ -34,53 +34,49 @@ const Generate = () => {
 
   const handleDownloadPDF = async () => {
     const pdf = new jsPDF('p', 'mm', 'a4');
+    let isFirstPage = true;
 
-    // Capture the title page if it needs to be shown
+    // Title page
     if (showTitlePage && titlePageRef.current) {
       const canvas = await html2canvas(titlePageRef.current, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png'); // Ensure PNG format
+      const imgData = canvas.toDataURL('image/jpeg', 0.7);
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-      console.log('Title Page Image Data URL:', imgData); // Log for debugging
-
-      if (imgData) {
-        const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-        // Add the title page to the PDF
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.addPage(); // Add a new page after the title page
-      } else {
-        console.error('Failed to capture title page.');
-      }
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      isFirstPage = false;
     }
 
-    // Loop through and capture the puzzle pages as HTML
+    // Puzzle pages
     for (let i = 0; i < pageRefs.current.length; i++) {
       const page = pageRefs.current[i];
       if (!page) continue;
 
       const canvas = await html2canvas(page, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png'); // Ensure PNG format
+      const imgData = canvas.toDataURL('image/jpeg', 0.7);
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-      console.log('Puzzle Page Image Data URL:', imgData); // Log for debugging
+      if (!isFirstPage) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+    }
 
-      if (imgData) {
-        const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    // Answers section
+    if (answersRef.current) {
+      const canvas = await html2canvas(answersRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL('image/jpeg', 0.7);
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-        if (i !== 0) pdf.addPage(); // Add a new page after the first puzzle page
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      } else {
-        console.error('Failed to capture puzzle page.');
-      }
+      pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
     }
 
     pdf.save('figgerits.pdf');
-
-    // After generating the PDF, hide the title page
-    setShowTitlePage(false);
+    isFirstPage = true;
   };
 
   if (!figgerits || figgerits.length === 0) {
@@ -88,11 +84,17 @@ const Generate = () => {
   }
 
   const puzzleGroups = chunkArray(figgerits, 4);
-  pageRefs.current = []; // Reset refs before assigning them again
+  pageRefs.current = [];
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Conditionally render the title page */}
+    <div className="p-6 bg-gray-50 min-h-screen space-y-12">
+        <button
+        onClick={handleDownloadPDF}
+        className="mb-6 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+      >
+        Download PDF
+      </button>
+      {/* Title Page */}
       {showTitlePage && (
         <div
           ref={titlePageRef}
@@ -103,20 +105,16 @@ const Generate = () => {
         </div>
       )}
 
-      <button
-        onClick={handleDownloadPDF}
-        className="mb-6 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
-      >
-        Download PDF
-      </button>
+    
 
+      {/* Puzzle Pages */}
       {puzzleGroups.map((group, i) => (
         <div
           key={i}
           ref={(el) => {
             pageRefs.current[i] = el;
           }}
-          className="mb-12 p-6 border rounded shadow bg-white"
+          className="p-6 border rounded shadow bg-white"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {group.map((figgerit, index) => (
@@ -133,6 +131,29 @@ const Generate = () => {
           </div>
         </div>
       ))}
+
+      {/* Answer Pages - grouped in 3 columns */}
+      <div ref={answersRef} className="p-6 border rounded shadow bg-white">
+        <h2 className="text-2xl font-bold mb-6">Answers</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {figgerits.map((figgerit, i) => (
+            <div key={i} className="break-inside-avoid">
+              <h3 className="font-semibold mb-2">Figgerit #{i + 1}</h3>
+              <div className="text-sm mb-2">
+                <span className="font-semibold">Words:</span>
+                <ol className="list-decimal list-inside ml-4">
+                  {figgerit.matches.map((match, j) => (
+                    <li key={j}>{match.answer}</li>
+                  ))}
+                </ol>
+              </div>
+              <div className="text-sm">
+                <span className="font-semibold">Solution:</span> {figgerit.saying.text}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
