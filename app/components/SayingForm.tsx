@@ -8,6 +8,7 @@ export default function SayingForm() {
 
   const fields: Array<{name: keyof SayingFormValues; label:string}> = [
     { name: 'saying', label: 'Saying' },
+    { name: 'category', label: 'Category (optional)' },
   ];
 
   return (

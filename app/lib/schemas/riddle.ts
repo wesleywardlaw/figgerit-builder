@@ -8,7 +8,10 @@ export const RiddleSchema = z.object({
   word: z
     .string({ required_error: 'Word is required' }) 
     .min(1, 'Word cannot be empty') 
-    .trim(), 
+    .trim(),
+  category: z
+    .string()
+    .optional(),
 });
 
 export type RiddleFormValues = z.infer<typeof RiddleSchema>;

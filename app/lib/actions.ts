@@ -57,18 +57,19 @@ async function submitData<T>(
   }
 }
 
-export async function submitRiddle(data: { clue: string; word: string }) {
+export async function submitRiddle(data: { clue: string; word: string; category?: string }) {
   return submitData(data, Riddle, RiddleSchema);
 }
 
-export async function submitSaying(data: { saying: string }) {
+export async function submitSaying(data: { saying: string; category?: string }) {
   return submitData(data, Saying, SayingSchema);
 }
 
 export async function createFiggerits(
   numFiggerits: number = 6,
   riddlesPerAttempt: number = 2000,
-  volume: number
+  volume: number,
+  category?: string
 ): Promise<{ success: boolean; figgerits?: Figgerit[]; error?: string }> {
   try {
     await connectToDatabase();
@@ -77,11 +78,35 @@ export async function createFiggerits(
       return { success: false, error: "Number of figgerits must be at least 1" };
     }
 
-    const sayingCount = await Saying.countDocuments({
+    // Build the match query for sayings
+    const sayingMatchQuery: any = {
       $or: [{ volumes: { $exists: false } }, { volumes: { $nin: [volume] } }],
-    });
+    };
+    if (category) {
+      sayingMatchQuery.category = category;
+    }
+
+    const sayingCount = await Saying.countDocuments(sayingMatchQuery);
     if (sayingCount === 0) {
       return { success: false, error: "No unused sayings found for this volume" };
+    }
+
+    // Check if we have enough riddles before starting the main loop
+    const riddleMatchQuery: any = {
+      $or: [{ volumes: { $exists: false } }, { volumes: { $nin: [volume] } }],
+    };
+    if (category) {
+      riddleMatchQuery.category = category;
+    }
+
+    const initialRiddles = await Riddle.aggregate([
+      { $match: riddleMatchQuery },
+      { $sample: { size: riddlesPerAttempt } },
+    ]).exec();
+
+    if (initialRiddles.length < 28) {
+      console.log('Not enough riddles in database');
+      return { success: false, error: "Insufficient unique riddles in database" };
     }
 
     const figgerits: Figgerit[] = [];
@@ -94,7 +119,7 @@ export async function createFiggerits(
       console.log(`\nAttempt ${attempts}/${maxAttempts}`);
 
       const randomSaying = await Saying.aggregate([
-        { $match: { $or: [{ volumes: { $exists: false } }, { volumes: { $nin: [volume] } }] } },
+        { $match: sayingMatchQuery },
         { $sample: { size: 1 } },
       ]).exec();
 
@@ -108,14 +133,17 @@ export async function createFiggerits(
       console.log("Selected saying:", saying.text);
 
       let randomRiddles = await Riddle.aggregate([
-        { $match: { $or: [{ volumes: { $exists: false } }, { volumes: { $nin: [volume] } }] } },
+        { $match: riddleMatchQuery },
         { $sample: { size: riddlesPerAttempt } },
       ]).exec();
 
       randomRiddles = randomRiddles.filter((r) => !usedRiddleIds.has(r._id.toString()));
+      console.log("random riddles", randomRiddles)
+      console.log("random riddles length", randomRiddles.length)
 
       if (randomRiddles.length < 28) {
-        return { success: false, error: "Insufficient unique riddles in database" };
+        console.log('Not enough riddles - throwing error');
+        throw new Error("INSUFFICIENT_RIDDLES");
       }
 
       const plainRiddles = randomRiddles.map((r) => ({
@@ -185,6 +213,13 @@ for (const match of solution) {
     return { success: true, figgerits };
   } catch (error: unknown) {
     console.error("Error creating figgerits:", error);
+
+    if (error instanceof Error && error.message === "INSUFFICIENT_RIDDLES") {
+      return {
+        success: false,
+        error: "Insufficient unique riddles in database"
+      };
+    }
 
     const errorMessage =
       error instanceof Error

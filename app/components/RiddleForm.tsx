@@ -8,6 +8,7 @@ export default function RiddleForm() {
   const fields: Array<{ name: keyof RiddleFormValues; label: string }> = [
     { name: "clue", label: "Clue" },
     { name: "word", label: "Word" },
+    { name: "category", label: "Category (optional)" },
   ];
 
   return (
