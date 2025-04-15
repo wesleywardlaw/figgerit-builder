@@ -191,25 +191,36 @@ const Generate = () => {
             aspectRatio: `${A4_WIDTH}/${A4_HEIGHT}`,
             maxWidth: '800px',
             boxSizing: 'border-box',
-            padding: '15px'
           }}
         >
           <h2 className="text-xl font-bold mb-2 text-center">Figgerits - Page {i+1}</h2>
-          <div className="grid grid-cols-2 gap-4 h-full pb-4">
-            {group.map((figgerit, index) => (
-              <div key={index} className="border rounded p-3 flex flex-col">
-                <span className="text-base font-bold mb-1 block">
-                  Puzzle #{i * 4 + index + 1}
-                </span>
-                <div className="flex-grow">
-                  <FiggeritPuzzle
-                    data={figgerit.matches}
-                    saying={figgerit.saying}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+          <div className="grid grid-cols-2 h-full pb-4">
+  {group.map((figgerit, index) => {
+    const isTop = index < 2;
+    const isLeft = index % 2 === 0;
+
+    // Only show border on bottom if it's top row
+    // Only show border on right if it's left column
+    const borderClasses = `
+      ${isTop ? 'border-b' : ''}
+      ${isLeft ? 'border-r' : ''}
+    `;
+
+    return (
+      <div key={index} className={`flex flex-col ${borderClasses}`}>
+        <span className="text-base font-bold mb-1 block pl-2">
+          Puzzle #{i * 4 + index + 1}
+        </span>
+        <div className="flex-grow">
+          <FiggeritPuzzle
+            data={figgerit.matches}
+            saying={figgerit.saying}
+          />
+        </div>
+      </div>
+    );
+  })}
+</div>
         </div>
       ))}
 

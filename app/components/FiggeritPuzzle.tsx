@@ -18,7 +18,7 @@ const FiggeritPuzzle: React.FC<FiggeritPuzzleProps> = ({ data, saying }) => {
         {data.map((item, idx) => (
           <React.Fragment key={item.riddle._id}>
             {/* Left: Clue */}
-            <div className="text-left pl-1 font-medium text-sm flex items-center">
+            <div className="text-left pl-1 font-medium text-xs flex items-center">
               {idx + 1}. {item.riddle.clue}
             </div>
 
@@ -33,7 +33,7 @@ const FiggeritPuzzle: React.FC<FiggeritPuzzleProps> = ({ data, saying }) => {
                     } else if (char === "'") {
                       return (
                         <div key={i} className="flex flex-col items-center w-1">
-                          <div className="h-4 text-sm w-full text-center">'</div>
+                          <div className="h-4 text-xs w-full text-center">'</div>
                         </div>
                       );
                     } else {
