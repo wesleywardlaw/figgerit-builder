@@ -8,6 +8,20 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import TitlePage from "../components/TitlePage";
 
+// Paper sizes in mm
+const PAPER_SIZES = {
+  a4: {
+    name: "A4",
+    width: 210,
+    height: 297,
+  },
+  letter: {
+    name: "US Letter (8.5\" x 11\")",
+    width: 215.9,
+    height: 279.4,
+  }
+};
+
 // Utility function to chunk puzzles into groups of 4
 const chunkArray = <T,>(arr: T[], size: number): T[][] => {
   return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
@@ -21,14 +35,14 @@ const Generate = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showTitlePage, setShowTitlePage] = useState(true);
   const [volume, setVolume] = useState<number>(1);
+  const [paperSize, setPaperSize] = useState<"a4" | "letter">("letter"); // Default to letter
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const titlePageRef = useRef<HTMLDivElement | null>(null);
   const answersRef = useRef<HTMLDivElement | null>(null);
 
-  // A4 aspect ratio constants for better page fitting
-  const A4_WIDTH = 210; // mm
-  const A4_HEIGHT = 297; // mm
-  const PAGE_RATIO = A4_HEIGHT / A4_WIDTH;
+  // Get current paper dimensions based on selection
+  const currentPaper = PAPER_SIZES[paperSize];
+  const PAGE_RATIO = currentPaper.height / currentPaper.width;
 
   const fetchFiggerits = async () => {
     try {
@@ -62,7 +76,8 @@ const Generate = () => {
   };
 
   const handleDownloadPDF = async () => {
-    const pdf = new jsPDF("p", "mm", "a4");
+    // Use selected paper size for PDF
+    const pdf = new jsPDF("p", "mm", paperSize);
     let isFirstPage = true;
 
     // Optimal canvas settings for better quality PDFs
@@ -112,7 +127,7 @@ const Generate = () => {
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
     }
 
-    pdf.save(`figgerits-volume-${volume}.pdf`);
+    pdf.save(`figgerits-volume-${volume}-${paperSize}.pdf`);
   };
 
   return (
@@ -171,7 +186,7 @@ const Generate = () => {
           </div>
 
           {/* Controls for PDF options */}
-          <div className="mb-4">
+          <div className="mb-4 flex flex-wrap gap-6">
             <label className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -181,21 +196,36 @@ const Generate = () => {
               />
               <span>Include title page</span>
             </label>
+            
+            <div>
+              <label htmlFor="paperSize" className="block text-sm font-medium text-gray-700 mb-1">
+                Paper Size
+              </label>
+              <select
+                id="paperSize"
+                value={paperSize}
+                onChange={(e) => setPaperSize(e.target.value as "a4" | "letter")}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="letter">US Letter (8.5" x 11")</option>
+                <option value="a4">A4 (210mm x 297mm)</option>
+              </select>
+            </div>
           </div>
 
           {/* Preview area with message */}
           <div className="mb-4 p-4 bg-yellow-100 border border-yellow-300 rounded">
-            <p>Preview below. PDF will be formatted to fill A4 pages.</p>
+            <p>Preview below. PDF will be formatted to fill {currentPaper.name} pages.</p>
           </div>
 
-          {/* Title Page - styled for A4 proportions */}
+          {/* Title Page - styled for current paper proportions */}
           {showTitlePage && (
             <div
               ref={titlePageRef}
               className="mx-auto"
               style={{
                 width: "100%",
-                aspectRatio: `${A4_WIDTH}/${A4_HEIGHT}`,
+                aspectRatio: `${currentPaper.width}/${currentPaper.height}`,
                 maxWidth: "800px",
                 boxSizing: "border-box",
                 height: "100%",
@@ -206,7 +236,7 @@ const Generate = () => {
             </div>
           )}
 
-          {/* Puzzle Pages - styled for A4 proportions */}
+          {/* Puzzle Pages - styled for current paper proportions */}
           {chunkArray(figgerits, 4).map((group, i) => (
             <div
               key={i}
@@ -216,7 +246,7 @@ const Generate = () => {
               className="mx-auto border rounded shadow bg-white"
               style={{
                 width: "100%",
-                aspectRatio: `${A4_WIDTH}/${A4_HEIGHT}`,
+                aspectRatio: `${currentPaper.width}/${currentPaper.height}`,
                 maxWidth: "800px",
                 boxSizing: "border-box",
               }}
@@ -257,13 +287,13 @@ const Generate = () => {
             </div>
           ))}
 
-          {/* Answer Page - styled for A4 proportions */}
+          {/* Answer Page - styled for current paper proportions */}
           <div
             ref={answersRef}
             className="mx-auto border rounded shadow bg-white"
             style={{
               width: "100%",
-              aspectRatio: `${A4_WIDTH}/${A4_HEIGHT}`,
+              aspectRatio: `${currentPaper.width}/${currentPaper.height}`,
               maxWidth: "800px",
               boxSizing: "border-box",
               padding: "20px",
