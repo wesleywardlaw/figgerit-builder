@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { createFiggerits } from '../lib/actions';
-import { Figgerit } from '@/types/figgerit';
-import FiggeritPuzzle from '../components/FiggeritPuzzle';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import { useState, useEffect, useRef } from "react";
+import { createFiggerits } from "../lib/actions";
+import { Figgerit } from "@/types/figgerit";
+import FiggeritPuzzle from "../components/FiggeritPuzzle";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 // Utility function to chunk puzzles into groups of 4
 const chunkArray = <T,>(arr: T[], size: number): T[][] => {
@@ -24,7 +24,7 @@ const Generate = () => {
   const answersRef = useRef<HTMLDivElement | null>(null);
 
   // A4 aspect ratio constants for better page fitting
-  const A4_WIDTH = 210;  // mm
+  const A4_WIDTH = 210; // mm
   const A4_HEIGHT = 297; // mm
   const PAGE_RATIO = A4_HEIGHT / A4_WIDTH;
 
@@ -37,10 +37,10 @@ const Generate = () => {
         console.log(result);
         setFiggerits(result.figgerits);
       } else {
-        setError(result.error || 'Failed to generate figgerits');
+        setError(result.error || "Failed to generate figgerits");
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -51,7 +51,7 @@ const Generate = () => {
   }, []);
 
   const handleDownloadPDF = async () => {
-    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdf = new jsPDF("p", "mm", "a4");
     let isFirstPage = true;
 
     // Optimal canvas settings for better quality PDFs
@@ -60,18 +60,18 @@ const Generate = () => {
       useCORS: true,
       logging: false,
       allowTaint: true,
-      backgroundColor: '#ffffff'
+      backgroundColor: "#ffffff",
     };
 
     // Title page
     if (showTitlePage && titlePageRef.current) {
       const canvas = await html2canvas(titlePageRef.current, canvasOptions);
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
       // Add with proper sizing to fill the page
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       isFirstPage = false;
     }
 
@@ -81,27 +81,27 @@ const Generate = () => {
       if (!page) continue;
 
       const canvas = await html2canvas(page, canvasOptions);
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
       if (!isFirstPage) pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       isFirstPage = false;
     }
 
     // Answers section
     if (answersRef.current) {
       const canvas = await html2canvas(answersRef.current, canvasOptions);
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      
+
       pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
     }
 
-    pdf.save('figgerits.pdf');
+    pdf.save("figgerits.pdf");
   };
 
   if (isLoading) {
@@ -137,7 +137,7 @@ const Generate = () => {
       >
         Download PDF
       </button>
-      
+
       {/* Controls for PDF options */}
       <div className="mb-4">
         <label className="flex items-center space-x-2">
@@ -150,7 +150,7 @@ const Generate = () => {
           <span>Include title page</span>
         </label>
       </div>
-      
+
       {/* Preview area with message */}
       <div className="mb-4 p-4 bg-yellow-100 border border-yellow-300 rounded">
         <p>Preview below. PDF will be formatted to fill A4 pages.</p>
@@ -162,15 +162,15 @@ const Generate = () => {
           ref={titlePageRef}
           className="mx-auto bg-white"
           style={{
-            width: '100%',
+            width: "100%",
             aspectRatio: `${A4_WIDTH}/${A4_HEIGHT}`,
-            maxWidth: '800px',
-            boxSizing: 'border-box',
-            padding: '40px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center'
+            maxWidth: "800px",
+            boxSizing: "border-box",
+            padding: "40px 20px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
           <h1 className="text-5xl font-bold mb-8">Figgerits Vol. 1</h1>
@@ -187,53 +187,54 @@ const Generate = () => {
           }}
           className="mx-auto border rounded shadow bg-white"
           style={{
-            width: '100%',
+            width: "100%",
             aspectRatio: `${A4_WIDTH}/${A4_HEIGHT}`,
-            maxWidth: '800px',
-            boxSizing: 'border-box',
+            maxWidth: "800px",
+            boxSizing: "border-box",
           }}
         >
-          <h2 className="text-xl font-bold mb-2 text-center">Figgerits - Page {i+1}</h2>
+          <h2 className="text-xl font-bold mb-2 text-center">
+            Figgerits - Page {i + 1}
+          </h2>
           <div className="grid grid-cols-2 h-full pb-4">
-  {group.map((figgerit, index) => {
-    const isTop = index < 2;
-    const isLeft = index % 2 === 0;
+            {group.map((figgerit, index) => {
+              const isTop = index < 2;
+              const isLeft = index % 2 === 0;
 
-    // Only show border on bottom if it's top row
-    // Only show border on right if it's left column
-    const borderClasses = `
-      ${isTop ? 'border-b' : ''}
-      ${isLeft ? 'border-r' : ''}
-    `;
+              // Only show border on bottom if it's top row
+              // Only show border on right if it's left column
+              const borderClasses = `${isTop ? "border-b" : ""}${
+                isLeft ? "border-r" : ""
+              }`;
 
-    return (
-      <div key={index} className={`flex flex-col ${borderClasses}`}>
-        <span className="text-base font-bold mb-1 block pl-2">
-          Puzzle #{i * 4 + index + 1}
-        </span>
-        <div className="flex-grow">
-          <FiggeritPuzzle
-            data={figgerit.matches}
-            saying={figgerit.saying}
-          />
-        </div>
-      </div>
-    );
-  })}
-</div>
+              return (
+                <div key={index} className={`flex flex-col ${borderClasses}`}>
+                  <span className="text-base font-bold mb-1 block pl-2">
+                    Puzzle #{i * 4 + index + 1}
+                  </span>
+                  <div className="flex-grow">
+                    <FiggeritPuzzle
+                      data={figgerit.matches}
+                      saying={figgerit.saying}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       ))}
 
       {/* Answer Page - styled for A4 proportions */}
-      <div 
-        ref={answersRef} 
+      <div
+        ref={answersRef}
         className="mx-auto border rounded shadow bg-white"
         style={{
-          width: '100%',
+          width: "100%",
           aspectRatio: `${A4_WIDTH}/${A4_HEIGHT}`,
-          maxWidth: '800px',
-          boxSizing: 'border-box',
-          padding: '20px'
+          maxWidth: "800px",
+          boxSizing: "border-box",
+          padding: "20px",
         }}
       >
         <h2 className="text-2xl font-bold mb-6 text-center">Answers</h2>
@@ -242,19 +243,20 @@ const Generate = () => {
             <div key={i} className="break-inside-avoid">
               <h3 className="font-semibold mb-1">Figgerit #{i + 1}</h3>
               <div className="mb-1">
-              <span className="font-semibold">Words:</span>
+                <span className="font-semibold">Words:</span>
                 {/* Fixed answer list with better alignment */}
                 <div className="ml-2 text-sm">
                   {figgerit.matches.map((match, j) => (
                     <div key={j} className="flex items-start">
-                      <span className="mr-1 min-w-4 text-right">{j+1}.</span>
+                      <span className="mr-1 min-w-4 text-right">{j + 1}.</span>
                       <span>{match.answer}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <div className="text-sm">
-                <span className="font-semibold">Solution:</span> {figgerit.saying.text}
+                <span className="font-semibold">Solution:</span>{" "}
+                {figgerit.saying.text}
               </div>
             </div>
           ))}
