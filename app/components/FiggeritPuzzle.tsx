@@ -1,5 +1,5 @@
 import React from "react";
-import { MatchResult } from "@/types/matchresult"; // Assuming this import exists
+import { MatchResult } from "@/types/matchresult";
 
 interface Saying {
   text: string;

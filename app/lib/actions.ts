@@ -234,3 +234,62 @@ for (const match of solution) {
     };
   }
 }
+
+export async function getFiggeritsByVolume(
+  volume: number
+): Promise<{ success: boolean; figgerits?: Figgerit[]; error?: string }> {
+  try {
+    await connectToDatabase();
+
+    if (!volume || volume < 1) {
+      return { success: false, error: "Volume number must be at least 1" };
+    }
+
+    const figgeritDocs = await FiggeritModel.find({ volume }).exec();
+    
+    if (!figgeritDocs || figgeritDocs.length === 0) {
+      return { success: false, error: `No figgerits found for volume ${volume}` };
+    }
+
+    // Convert Mongoose documents to plain JavaScript objects
+    const figgerits = figgeritDocs.map(doc => {
+      const plainDoc = doc.toObject();
+      return {
+        saying: {
+          text: String(plainDoc.saying.text || ''),
+          _id: String(plainDoc.saying._id || '')
+        },
+        matches: plainDoc.matches.map((match: any) => ({
+          answer: String(match.answer || ''),
+          letterPositions: Array.isArray(match.letterPositions) 
+            ? match.letterPositions.map((pos: any) => ({
+                letter: String(pos.letter || ''),
+                position: Number(pos.position || 0)
+              }))
+            : [],
+          riddle: {
+            clue: String(match.riddle?.clue || ''),
+            word: String(match.riddle?.word || ''),
+            _id: String(match.riddle?._id || '')
+          }
+        }))
+      };
+    });
+
+    return { success: true, figgerits };
+  } catch (error: unknown) {
+    console.error("Error retrieving figgerits:", error);
+
+    const errorMessage =
+      error instanceof Error
+        ? error.name === "MongoNetworkError"
+          ? "Database connection error"
+          : "An unexpected error occurred"
+        : "An unknown error occurred";
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
