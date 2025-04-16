@@ -37,7 +37,7 @@ const GeneratePuzzles = () => {
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6">Generate Figgerits</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center">Generate Figgerits</h2>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
