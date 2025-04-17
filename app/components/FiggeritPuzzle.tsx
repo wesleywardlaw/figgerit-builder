@@ -27,26 +27,32 @@ const FiggeritPuzzle: React.FC<FiggeritPuzzleProps> = ({ data, saying }) => {
               <div className="flex flex-wrap gap-1">
                 {(() => {
                   let letterPosIndex = 0;
-                  return item.answer.split("").map((char, i) => {
-                    if (char === " ") {
-                      return <div key={i} className="w-1" />;
-                    } else if (char === "'") {
-                      return (
-                        <div key={i} className="flex flex-col items-center w-1">
-                          <div className="h-4 text-xs w-full text-center">'</div>
-                        </div>
-                      );
-                    } else {
-                      const number = item.letterPositions?.[letterPosIndex]?.position + 1;
-                      letterPosIndex++;
-                      return (
-                        <div key={i} className="flex flex-col items-center w-3">
-                          <div className="h-4 border-b-2 border-gray-800 text-sm w-full text-center" />
-                          <div className="text-xs text-gray-600">{number}</div>
-                        </div>
-                      );
-                    }
-                  });
+                  const answerWords = item.answer.split(" ");
+                  
+                  return answerWords.map((word, wordIdx) => (
+                    <div key={wordIdx} className="flex whitespace-nowrap gap-1">
+                      {word.split("").map((char, i) => {
+                        if (char === "'") {
+                          return (
+                            <div key={i} className="flex flex-col items-center w-1">
+                              <div className="h-4 text-xs w-full text-center">'</div>
+                            </div>
+                          );
+                        } else {
+                          const number = item.letterPositions?.[letterPosIndex]?.position + 1;
+                          letterPosIndex++;
+                          return (
+                            <div key={i} className="flex flex-col items-center w-3">
+                              <div className="h-4 border-b-2 border-gray-800 text-sm w-full text-center" />
+                              <div className="text-xs text-gray-600">{number}</div>
+                            </div>
+                          );
+                        }
+                      })}
+                      {/* Spacer after word (except last) */}
+                      {wordIdx !== answerWords.length - 1 && <div className="w-1" />}
+                    </div>
+                  ));
                 })()}
               </div>
             </div>
@@ -60,7 +66,7 @@ const FiggeritPuzzle: React.FC<FiggeritPuzzleProps> = ({ data, saying }) => {
           let positionCounter = 1;
           const words = saying.text.split(" ");
           return words.map((word, wordIdx) => (
-            <div key={wordIdx} className="flex gap-1">
+            <div key={wordIdx} className="flex whitespace-nowrap gap-1">
               {word.split("").map((char, i) => {
                 if (char === "'") {
                   return (
