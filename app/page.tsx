@@ -8,7 +8,7 @@ export default function Home() {
           <Link href="/build">Add Data</Link>
         </h2>
         <p className="text-white mb-2">
-          Add riddles nad sayins to be used in generating your Figgerit puzzles.
+          Add riddles and sayings to be used in generating your Figgerit puzzles.
           Optionally associate riddles and sayings with a category. Supports
           uploading via CSV files.
         </p>
