@@ -10,6 +10,10 @@ interface FiggeritPuzzleProps {
   saying: Saying;
 }
 
+const isNotLetter = (char:string) => {
+  return !/^[a-zA-Z]$/.test(char);
+}
+
 const FiggeritPuzzle: React.FC<FiggeritPuzzleProps> = ({ data, saying }) => {
   return (
     <div className="p-1 space-y-2">
@@ -32,10 +36,10 @@ const FiggeritPuzzle: React.FC<FiggeritPuzzleProps> = ({ data, saying }) => {
                   return answerWords.map((word, wordIdx) => (
                     <div key={wordIdx} className="flex whitespace-nowrap gap-1">
                       {word.split("").map((char, i) => {
-                        if (char === "'") {
+                        if (char === "'" || char === "-") {
                           return (
                             <div key={i} className="flex flex-col items-center w-1">
-                              <div className="h-4 text-xs w-full text-center">'</div>
+                              <div className="h-4 text-xs w-full text-center">{char}</div>
                             </div>
                           );
                         } else {
@@ -68,10 +72,10 @@ const FiggeritPuzzle: React.FC<FiggeritPuzzleProps> = ({ data, saying }) => {
           return words.map((word, wordIdx) => (
             <div key={wordIdx} className="flex whitespace-nowrap gap-1">
               {word.split("").map((char, i) => {
-                if (char === "'") {
+                if (isNotLetter(char)) {
                   return (
                     <div key={i} className="flex flex-col items-center w-1">
-                      <div className="h-4 text-sm w-full text-center">'</div>
+                      <div className="h-4 text-sm w-full text-center">{char}</div>
                     </div>
                   );
                 }
