@@ -36,7 +36,7 @@ const FiggeritPuzzle: React.FC<FiggeritPuzzleProps> = ({ data, saying }) => {
                   return answerWords.map((word, wordIdx) => (
                     <div key={wordIdx} className="flex whitespace-nowrap gap-1">
                       {word.split("").map((char, i) => {
-                        if (char === "'" || char === "-") {
+                        if (isNotLetter(char)) {
                           return (
                             <div key={i} className="flex flex-col items-center w-1">
                               <div className="h-4 text-xs w-full text-center">{char}</div>
