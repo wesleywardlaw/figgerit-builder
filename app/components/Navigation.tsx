@@ -1,4 +1,4 @@
-'use client'// components/Navigation.tsx
+"use client";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -19,32 +19,30 @@ export default function Navigation() {
               Figgerit Builder
             </Link>
           </div>
-          
-          {/* Desktop navigation */}
+
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
-              <Link 
-                href="/build" 
+              <Link
+                href="/build"
                 className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
               >
                 Add Data
               </Link>
-              <Link 
-                href="/generatepuzzles" 
+              <Link
+                href="/generatepuzzles"
                 className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
               >
                 Generate Puzzles
               </Link>
-              <Link 
-                href="/view" 
+              <Link
+                href="/view"
                 className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
               >
                 View Volumes
               </Link>
             </div>
           </div>
-          
-          {/* Mobile menu button */}
+
           <div className="md:hidden">
             <button
               onClick={toggleMenu}
@@ -52,7 +50,6 @@ export default function Navigation() {
               aria-expanded="false"
             >
               <span className="sr-only">Open main menu</span>
-              {/* Icon when menu is closed */}
               {!isMenuOpen ? (
                 <svg
                   className="block h-6 w-6"
@@ -70,7 +67,6 @@ export default function Navigation() {
                   />
                 </svg>
               ) : (
-                /* Icon when menu is open */
                 <svg
                   className="block h-6 w-6"
                   xmlns="http://www.w3.org/2000/svg"
@@ -92,7 +88,6 @@ export default function Navigation() {
         </div>
       </div>
 
-      {/* Mobile menu, show/hide based on menu state */}
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">

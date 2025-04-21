@@ -1,8 +1,5 @@
 import { LetterPosition, MatchResult } from "@/types/matchresult";
 
-
-
-
 export function findCompleteFiggerit(
     riddles: Array<{ clue: string; word: string; _id: string }>, 
     saying: string

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import styles from './TitlePage.module.css';
+import React from "react";
+import styles from "./TitlePage.module.css";
 
 interface TitlePageProps {
   volumeNumber: number;
@@ -16,7 +16,7 @@ const TitlePage: React.FC<TitlePageProps> = ({ volumeNumber }) => {
             key={index}
             className={styles.triangle}
             style={{
-              transform: `rotate(${index * 30}deg)`
+              transform: `rotate(${index * 30}deg)`,
             }}
           />
         ))}
@@ -31,4 +31,4 @@ const TitlePage: React.FC<TitlePageProps> = ({ volumeNumber }) => {
   );
 };
 
-export default TitlePage; 
+export default TitlePage;

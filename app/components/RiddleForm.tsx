@@ -23,7 +23,7 @@ export default function RiddleForm() {
           submitButtonText="Submit Riddle"
         />
       </div>
-      
+
       <CSVUpload type="riddle" />
     </div>
   );

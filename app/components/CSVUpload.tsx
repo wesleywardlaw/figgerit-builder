@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { RiddleFormValues, RiddleSchema } from "../lib/schemas/riddle";
 import { SayingFormValues, SayingSchema } from "../lib/schemas/saying";
 import { submitRiddle, submitSaying } from "../lib/actions";
@@ -32,108 +33,118 @@ export default function CSVUpload({ type }: CSVUploadProps) {
 
     setIsUploading(true);
     const reader = new FileReader();
-    
+
     reader.onload = async (e) => {
       try {
         const text = e.target?.result as string;
-        const rows = text.split("\n").filter(row => row.trim() !== "");
-        
-        // Skip header row
+        const rows = text.split("\n").filter((row) => row.trim() !== "");
+
         const dataRows = rows.slice(1);
-        
+
         const results: UploadResult = {
           success: 0,
           failed: 0,
-          errors: []
+          errors: [],
         };
 
         for (let i = 0; i < dataRows.length; i++) {
           const row = dataRows[i];
-          const columns = row.split(",").map(col => col.trim());
-          
+          const columns = row.split(",").map((col) => col.trim());
+
           try {
             if (type === "riddle") {
               if (columns.length < 2) {
-                throw new Error("Riddle must have at least clue and word columns");
+                throw new Error(
+                  "Riddle must have at least clue and word columns"
+                );
               }
-              
+
               const riddleData: RiddleFormValues = {
                 clue: columns[0],
                 word: columns[1],
-                category: columns[2] || undefined
+                category: columns[2] || undefined,
               };
-              
+
               const validationResult = RiddleSchema.safeParse(riddleData);
               if (!validationResult.success) {
                 throw new Error(validationResult.error.errors[0].message);
               }
-              
+
               const submitResult = await submitRiddle(riddleData);
               if (submitResult.success) {
                 results.success++;
               } else {
-                throw new Error(Object.values(submitResult.errors || {})[0]?.[0] || "Unknown error");
+                throw new Error(
+                  Object.values(submitResult.errors || {})[0]?.[0] ||
+                    "Unknown error"
+                );
               }
             } else {
               if (columns.length < 1) {
                 throw new Error("Saying must have at least the saying column");
               }
-              
+
               const sayingData: SayingFormValues = {
                 saying: columns[0],
-                category: columns[1] || undefined
+                category: columns[1] || undefined,
               };
-              
+
               const validationResult = SayingSchema.safeParse(sayingData);
               if (!validationResult.success) {
                 throw new Error(validationResult.error.errors[0].message);
               }
-              
+
               const submitResult = await submitSaying(sayingData);
               if (submitResult.success) {
                 results.success++;
               } else {
-                throw new Error(Object.values(submitResult.errors || {})[0]?.[0] || "Unknown error");
+                throw new Error(
+                  Object.values(submitResult.errors || {})[0]?.[0] ||
+                    "Unknown error"
+                );
               }
             }
           } catch (error) {
             results.failed++;
             results.errors.push({
-              row: i + 2, // +2 because of 0-indexing and header row
-              error: error instanceof Error ? error.message : "Unknown error"
+              row: i + 2,
+              error: error instanceof Error ? error.message : "Unknown error",
             });
           }
         }
-        
+
         setResult(results);
       } catch (error) {
         setResult({
           success: 0,
           failed: 0,
-          errors: [{ row: 0, error: "Failed to process CSV file" }]
+          errors: [{ row: 0, error: "Failed to process CSV file" }],
         });
       } finally {
         setIsUploading(false);
       }
     };
-    
+
     reader.readAsText(file);
   };
 
   return (
     <div className="mt-8 p-6 border rounded-lg shadow-sm">
-      <h2 className="text-xl font-semibold mb-4">Upload {type === "riddle" ? "Riddles" : "Sayings"} via CSV</h2>
-      
+      <h2 className="text-xl font-semibold mb-4">
+        Upload {type === "riddle" ? "Riddles" : "Sayings"} via CSV
+      </h2>
+
       <div className="mb-4">
         <p className="text-sm text-gray-600 mb-2">
-          {type === "riddle" 
-            ? "CSV format: clue,word,category(optional)" 
+          {type === "riddle"
+            ? "CSV format: clue,word,category(optional)"
             : "CSV format: saying,category(optional)"}
         </p>
         <p className="text-sm text-gray-600 mb-4">
-          Include a header row. Example: {type === "riddle" ? "clue,word,category" : "saying,category"}
+          Include a header row. Example:{" "}
+          {type === "riddle" ? "clue,word,category" : "saying,category"}
         </p>
-        
+
         <div className="flex items-center space-x-4">
           <input
             type="file"
@@ -178,19 +189,23 @@ export default function CSVUpload({ type }: CSVUploadProps) {
           </button>
         </div>
       </div>
-      
+
       {result && (
         <div className="mt-4">
           <div className="p-4 rounded-lg bg-gray-50">
             <h3 className="font-medium">Upload Results</h3>
             <p className="text-sm text-gray-600">
-              Successfully uploaded: <span className="font-medium text-green-600">{result.success}</span>
+              Successfully uploaded:{" "}
+              <span className="font-medium text-green-600">
+                {result.success}
+              </span>
             </p>
             <p className="text-sm text-gray-600">
-              Failed: <span className="font-medium text-red-600">{result.failed}</span>
+              Failed:{" "}
+              <span className="font-medium text-red-600">{result.failed}</span>
             </p>
           </div>
-          
+
           {result.errors.length > 0 && (
             <div className="mt-4">
               <h3 className="font-medium">Errors</h3>
@@ -198,15 +213,23 @@ export default function CSVUpload({ type }: CSVUploadProps) {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Row</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Error</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Row
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Error
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {result.errors.map((error, index) => (
                       <tr key={index}>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{error.row}</td>
-                        <td className="px-4 py-2 text-sm text-red-600">{error.error}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                          {error.row}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-red-600">
+                          {error.error}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -218,4 +241,4 @@ export default function CSVUpload({ type }: CSVUploadProps) {
       )}
     </div>
   );
-} 
+}

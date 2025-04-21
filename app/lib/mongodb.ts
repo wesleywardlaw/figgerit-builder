@@ -1,10 +1,12 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI as string;
-console.log("mongodb_uri",MONGODB_URI)
+console.log("mongodb_uri", MONGODB_URI);
 
 if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable in .env.local');
+  throw new Error(
+    "Please define the MONGODB_URI environment variable in .env.local"
+  );
 }
 /* eslint-disable @typescript-eslint/no-explicit-any */
 let cached = (global as any).mongoose;
@@ -20,11 +22,13 @@ export async function connectToDatabase() {
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, {
-      bufferCommands: false,
-    }).then((mongoose) => {
-      return mongoose;
-    });
+    cached.promise = mongoose
+      .connect(MONGODB_URI, {
+        bufferCommands: false,
+      })
+      .then((mongoose) => {
+        return mongoose;
+      });
   }
   cached.conn = await cached.promise;
   return cached.conn;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { createFiggerits } from "../lib/actions";
 
 const GeneratePuzzles = () => {
@@ -15,14 +16,23 @@ const GeneratePuzzles = () => {
     setSuccess(false);
 
     const formData = new FormData(e.currentTarget);
-    const numFiggerits = parseInt(formData.get("numFiggerits")?.toString() || "6");
-    const riddlesPerAttempt = parseInt(formData.get("riddlesPerAttempt")?.toString() || "2000");
+    const numFiggerits = parseInt(
+      formData.get("numFiggerits")?.toString() || "6"
+    );
+    const riddlesPerAttempt = parseInt(
+      formData.get("riddlesPerAttempt")?.toString() || "2000"
+    );
     const volume = parseInt(formData.get("volume")?.toString() || "1");
     const categoryInput = formData.get("category")?.toString();
     const category = categoryInput?.trim() || undefined;
 
     try {
-      const result = await createFiggerits(numFiggerits, riddlesPerAttempt, volume, category);
+      const result = await createFiggerits(
+        numFiggerits,
+        riddlesPerAttempt,
+        volume,
+        category
+      );
       if (result.success) {
         setSuccess(true);
       } else {
@@ -37,11 +47,16 @@ const GeneratePuzzles = () => {
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">Generate Figgerits</h2>
-      
+      <h2 className="text-2xl font-bold mb-6 text-center">
+        Generate Figgerits
+      </h2>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="numFiggerits" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="numFiggerits"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Number of Figgerits
           </label>
           <input
@@ -56,7 +71,10 @@ const GeneratePuzzles = () => {
         </div>
 
         <div>
-          <label htmlFor="riddlesPerAttempt" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="riddlesPerAttempt"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Riddles Per Attempt
           </label>
           <input
@@ -71,7 +89,10 @@ const GeneratePuzzles = () => {
         </div>
 
         <div>
-          <label htmlFor="volume" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="volume"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Volume
           </label>
           <input
@@ -85,7 +106,10 @@ const GeneratePuzzles = () => {
         </div>
 
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="category"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Category (Optional)
           </label>
           <input
@@ -107,7 +131,10 @@ const GeneratePuzzles = () => {
 
       {isLoading && (
         <div className="mt-4 p-4 bg-yellow-50 text-yellow-800 rounded-md">
-          <p>Please be patient while we generate your figgerits. This process may take some time...</p>
+          <p>
+            Please be patient while we generate your figgerits. This process may
+            take some time...
+          </p>
         </div>
       )}
 
@@ -126,4 +153,4 @@ const GeneratePuzzles = () => {
   );
 };
 
-export default GeneratePuzzles; 
+export default GeneratePuzzles;

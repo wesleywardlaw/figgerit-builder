@@ -16,10 +16,10 @@ const PAPER_SIZES = {
     height: 297,
   },
   letter: {
-    name: "US Letter (8.5\" x 11\")",
+    name: 'US Letter (8.5" x 11")',
     width: 215.9,
     height: 279.4,
-  }
+  },
 } as const;
 
 // Define our paper size type
@@ -53,15 +53,15 @@ const Generate = () => {
       setIsMobile(mobile);
       setShowMobileWarning(mobile);
     };
-    
+
     // Initial check
     checkIfMobile();
-    
+
     // Add event listener
-    window.addEventListener('resize', checkIfMobile);
-    
+    window.addEventListener("resize", checkIfMobile);
+
     // Cleanup
-    return () => window.removeEventListener('resize', checkIfMobile);
+    return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
   // Get current paper dimensions based on selection
@@ -73,14 +73,14 @@ const Generate = () => {
       setIsLoading(true);
       setError(null);
       const result = await getFiggeritsByVolume(volume);
-      
+
       if (result.success && result.figgerits) {
         // Basic validation to ensure we have data
         if (result.figgerits.length === 0) {
           setError("No figgerits found for this volume");
           return;
         }
-        
+
         // Set the figgerits directly since they're already processed
         setFiggerits(result.figgerits);
       } else {
@@ -101,20 +101,20 @@ const Generate = () => {
 
   const handleDownloadPDF = async () => {
     if (isGeneratingPDF) return; // Prevent multiple simultaneous generations
-    
+
     // Store original state before modifying it
     const mobileState = isMobile;
-    
+
     try {
       setIsLoading(true);
       setIsGeneratingPDF(true);
-      
+
       // Force consistent layout during PDF generation
       setIsMobile(false); // Temporarily override mobile detection for consistent layout
-      
+
       // Wait for state update and re-render
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Use selected paper size for PDF
       const pdf = new jsPDF("p", "mm", paperSize);
       let isFirstPage = true;
@@ -129,18 +129,18 @@ const Generate = () => {
         windowWidth: 1200, // Force desktop-width rendering
         windowHeight: 1600, // Ensure enough height
         //Crucial for capturing all content
-        onclone: (clonedDoc:any) => {
+        onclone: (clonedDoc: any) => {
           // Force all elements to be visible in the clone
-          const elements = clonedDoc.querySelectorAll('.grid');
-          elements.forEach((el:any) => {
+          const elements = clonedDoc.querySelectorAll(".grid");
+          elements.forEach((el: any) => {
             if (el instanceof HTMLElement) {
-              el.style.display = 'grid';
-              el.style.gridTemplateColumns = 'repeat(2, 1fr)'; // Force 2-column layout
-              el.style.height = 'auto'; // Let height expand as needed
-              el.style.overflow = 'visible';
+              el.style.display = "grid";
+              el.style.gridTemplateColumns = "repeat(2, 1fr)"; // Force 2-column layout
+              el.style.height = "auto"; // Let height expand as needed
+              el.style.overflow = "visible";
             }
           });
-        }
+        },
       };
 
       // Title page
@@ -201,11 +201,16 @@ const Generate = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen space-y-8">
       <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">Retrieve Figgerits</h1>
-        
+        <h1 className="text-2xl font-bold mb-6 text-center">
+          Retrieve Figgerits
+        </h1>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="volume" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="volume"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Volume Number
             </label>
             <input
@@ -218,22 +223,38 @@ const Generate = () => {
               required
             />
           </div>
-          
+
           <button
             type="submit"
             disabled={isLoading}
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
             ) : null}
             {isLoading ? "Loading..." : "Retrieve Figgerits"}
           </button>
         </form>
-        
+
         {error && (
           <div className="mt-4 p-4 text-sm text-red-800 bg-red-50 rounded-lg">
             Error: {error}
@@ -252,9 +273,25 @@ const Generate = () => {
             >
               {isGeneratingPDF ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Generating...
                 </>
@@ -275,9 +312,12 @@ const Generate = () => {
               />
               <span>Include title page</span>
             </label>
-            
+
             <div>
-              <label htmlFor="paperSize" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="paperSize"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Paper Size
               </label>
               <select
@@ -297,7 +337,7 @@ const Generate = () => {
             <div className="mb-4 p-4 bg-blue-100 border border-blue-300 rounded">
               <div className="flex justify-between items-center mb-2">
                 <p className="font-medium">Mobile View</p>
-                <button 
+                <button
                   onClick={toggleMobilePreview}
                   className="text-sm text-blue-700 underline"
                 >
@@ -305,7 +345,10 @@ const Generate = () => {
                 </button>
               </div>
               {showMobileWarning && (
-                <p>The preview may not display optimally on mobile devices. You can still generate the PDF or toggle the preview visibility.</p>
+                <p>
+                  The preview may not display optimally on mobile devices. You
+                  can still generate the PDF or toggle the preview visibility.
+                </p>
               )}
             </div>
           )}
@@ -313,7 +356,10 @@ const Generate = () => {
           {/* Preview message for desktop */}
           {!isMobile && (
             <div className="mb-4 p-4 bg-yellow-100 border border-yellow-300 rounded">
-              <p>Preview below. PDF will be formatted to fill {currentPaper.name} pages.</p>
+              <p>
+                Preview below. PDF will be formatted to fill {currentPaper.name}{" "}
+                pages.
+              </p>
             </div>
           )}
 
@@ -321,19 +367,41 @@ const Generate = () => {
           {isGeneratingPDF && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-                <svg className="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin h-10 w-10 text-blue-600 mb-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 <p className="text-lg font-medium">Generating PDF...</p>
-                <p className="text-sm text-gray-500 mt-2">This may take a moment</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  This may take a moment
+                </p>
               </div>
             </div>
           )}
 
           {/* Preview content - use height/overflow for hiding instead of display:none */}
-          <div 
-            className={`transition-opacity duration-200 ${(isMobile && showMobileWarning && !isGeneratingPDF) ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'}`}
+          <div
+            className={`transition-opacity duration-200 ${
+              isMobile && showMobileWarning && !isGeneratingPDF
+                ? "opacity-0 h-0 overflow-hidden"
+                : "opacity-100"
+            }`}
           >
             {/* Title Page - styled for current paper proportions */}
             {showTitlePage && (
@@ -371,18 +439,18 @@ const Generate = () => {
                 <h2 className="text-xl font-bold mb-2 text-center">
                   Figgerits - Page {i + 1}
                 </h2>
-                <div 
+                <div
                   className="grid pdf-content"
                   style={{
                     // Critical: ensure grid-template-columns is explicit
-                    gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+                    gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
                     height: "calc(100% - 40px)", // Subtract header height
                   }}
                 >
                   {group.map((figgerit, index) => {
                     // Determine border classes based on position and device type
                     let borderClasses = "";
-                    
+
                     if (!isMobile) {
                       // Desktop border styling
                       if (index === 0) {
@@ -396,11 +464,15 @@ const Generate = () => {
                       }
                     } else {
                       // Mobile border styling
-                      borderClasses = index < group.length - 1 ? "border-b" : "";
+                      borderClasses =
+                        index < group.length - 1 ? "border-b" : "";
                     }
 
                     return (
-                      <div key={index} className={`flex flex-col p-2 ${borderClasses} pdf-puzzle`}>
+                      <div
+                        key={index}
+                        className={`flex flex-col p-2 ${borderClasses} pdf-puzzle`}
+                      >
                         <span className="text-base font-bold mb-1 block">
                           Puzzle #{i * 4 + index + 1}
                         </span>
@@ -430,12 +502,12 @@ const Generate = () => {
               }}
             >
               <h2 className="text-2xl font-bold mb-6 text-center">Answers</h2>
-              <div 
+              <div
                 className="pdf-content"
                 style={{
                   display: "grid",
-                  gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-                  gap: "1.5rem 1rem"
+                  gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
+                  gap: "1.5rem 1rem",
                 }}
               >
                 {figgerits.map((figgerit, i) => (
@@ -447,7 +519,9 @@ const Generate = () => {
                       <div className="ml-2 text-sm">
                         {figgerit.matches.map((match, j) => (
                           <div key={j} className="flex items-start">
-                            <span className="mr-1 min-w-4 text-right">{j + 1}.</span>
+                            <span className="mr-1 min-w-4 text-right">
+                              {j + 1}.
+                            </span>
                             <span>{match.answer}</span>
                           </div>
                         ))}

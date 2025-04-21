@@ -2,7 +2,7 @@
 
 import mongoose from "mongoose";
 import { connectToDatabase } from "./mongodb";
-import { ZodSchema } from "zod"; // Import ZodSchema from Zod
+import { ZodSchema } from "zod";
 import Riddle from "./models/Riddle";
 import { RiddleSchema } from "./schemas/riddle";
 import Saying from "./models/Saying";
@@ -11,7 +11,6 @@ import { Figgerit } from "@/types/figgerit";
 import { findCompleteFiggerit } from "./utils/findCompleteFiggerit";
 import { MatchResult } from "@/types/matchresult";
 import FiggeritModel from "./models/Figgerit";
-
 
 type SubmitDataResult = {
   errors?: Partial<Record<string, string[]>>;
@@ -57,11 +56,18 @@ async function submitData<T>(
   }
 }
 
-export async function submitRiddle(data: { clue: string; word: string; category?: string }) {
+export async function submitRiddle(data: {
+  clue: string;
+  word: string;
+  category?: string;
+}) {
   return submitData(data, Riddle, RiddleSchema);
 }
 
-export async function submitSaying(data: { saying: string; category?: string }) {
+export async function submitSaying(data: {
+  saying: string;
+  category?: string;
+}) {
   return submitData(data, Saying, SayingSchema);
 }
 
@@ -75,7 +81,10 @@ export async function createFiggerits(
     await connectToDatabase();
 
     if (numFiggerits < 1) {
-      return { success: false, error: "Number of figgerits must be at least 1" };
+      return {
+        success: false,
+        error: "Number of figgerits must be at least 1",
+      };
     }
 
     // Build the match query for sayings
@@ -88,7 +97,10 @@ export async function createFiggerits(
 
     const sayingCount = await Saying.countDocuments(sayingMatchQuery);
     if (sayingCount === 0) {
-      return { success: false, error: "No unused sayings found for this volume" };
+      return {
+        success: false,
+        error: "No unused sayings found for this volume",
+      };
     }
 
     // Check if we have enough riddles before starting the main loop
@@ -105,8 +117,11 @@ export async function createFiggerits(
     ]).exec();
 
     if (initialRiddles.length < 28) {
-      console.log('Not enough riddles in database');
-      return { success: false, error: "Insufficient unique riddles in database" };
+      console.log("Not enough riddles in database");
+      return {
+        success: false,
+        error: "Insufficient unique riddles in database",
+      };
     }
 
     const figgerits: Figgerit[] = [];
@@ -137,12 +152,14 @@ export async function createFiggerits(
         { $sample: { size: riddlesPerAttempt } },
       ]).exec();
 
-      randomRiddles = randomRiddles.filter((r) => !usedRiddleIds.has(r._id.toString()));
-      console.log("random riddles", randomRiddles)
-      console.log("random riddles length", randomRiddles.length)
+      randomRiddles = randomRiddles.filter(
+        (r) => !usedRiddleIds.has(r._id.toString())
+      );
+      console.log("random riddles", randomRiddles);
+      console.log("random riddles length", randomRiddles.length);
 
       if (randomRiddles.length < 28) {
-        console.log('Not enough riddles - throwing error');
+        console.log("Not enough riddles - throwing error");
         throw new Error("INSUFFICIENT_RIDDLES");
       }
 
@@ -177,22 +194,25 @@ export async function createFiggerits(
 
         await FiggeritModel.create(newFiggerit);
 
-       // Check if Saying is being updated
-const sayingUpdateResult = await Saying.updateOne(
-  { _id: saying._id },
-  { $addToSet: { volumes: volume } }
-);
-console.log("Saying update result:", sayingUpdateResult);
+        // Check if Saying is being updated
+        const sayingUpdateResult = await Saying.updateOne(
+          { _id: saying._id },
+          { $addToSet: { volumes: volume } }
+        );
+        console.log("Saying update result:", sayingUpdateResult);
 
-// Check if Riddles are being updated
-for (const match of solution) {
-  const riddleUpdateResult = await Riddle.updateOne(
-    { _id: match.riddle._id },
-    { $addToSet: { volumes: volume } }
-  );
-  console.log(`Riddle ${match.riddle._id} update result:`, riddleUpdateResult);
-  usedRiddleIds.add(match.riddle._id.toString());
-}
+        // Check if Riddles are being updated
+        for (const match of solution) {
+          const riddleUpdateResult = await Riddle.updateOne(
+            { _id: match.riddle._id },
+            { $addToSet: { volumes: volume } }
+          );
+          console.log(
+            `Riddle ${match.riddle._id} update result:`,
+            riddleUpdateResult
+          );
+          usedRiddleIds.add(match.riddle._id.toString());
+        }
       } else {
         console.log("No solution found for this saying");
       }
@@ -217,7 +237,7 @@ for (const match of solution) {
     if (error instanceof Error && error.message === "INSUFFICIENT_RIDDLES") {
       return {
         success: false,
-        error: "Insufficient unique riddles in database"
+        error: "Insufficient unique riddles in database",
       };
     }
 
@@ -246,33 +266,36 @@ export async function getFiggeritsByVolume(
     }
 
     const figgeritDocs = await FiggeritModel.find({ volume }).exec();
-    
+
     if (!figgeritDocs || figgeritDocs.length === 0) {
-      return { success: false, error: `No figgerits found for volume ${volume}` };
+      return {
+        success: false,
+        error: `No figgerits found for volume ${volume}`,
+      };
     }
 
     // Convert Mongoose documents to plain JavaScript objects
-    const figgerits = figgeritDocs.map(doc => {
+    const figgerits = figgeritDocs.map((doc) => {
       const plainDoc = doc.toObject();
       return {
         saying: {
-          text: String(plainDoc.saying.text || ''),
-          _id: String(plainDoc.saying._id || '')
+          text: String(plainDoc.saying.text || ""),
+          _id: String(plainDoc.saying._id || ""),
         },
         matches: plainDoc.matches.map((match: any) => ({
-          answer: String(match.answer || ''),
-          letterPositions: Array.isArray(match.letterPositions) 
+          answer: String(match.answer || ""),
+          letterPositions: Array.isArray(match.letterPositions)
             ? match.letterPositions.map((pos: any) => ({
-                letter: String(pos.letter || ''),
-                position: Number(pos.position || 0)
+                letter: String(pos.letter || ""),
+                position: Number(pos.position || 0),
               }))
             : [],
           riddle: {
-            clue: String(match.riddle?.clue || ''),
-            word: String(match.riddle?.word || ''),
-            _id: String(match.riddle?._id || '')
-          }
-        }))
+            clue: String(match.riddle?.clue || ""),
+            word: String(match.riddle?.word || ""),
+            _id: String(match.riddle?._id || ""),
+          },
+        })),
       };
     });
 
