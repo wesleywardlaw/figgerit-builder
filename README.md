@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Figgerit Builder
+
+Figgerit Builder is a web application for creating and managing Figgerit puzzles. This app allows you to add riddles and sayings, generate puzzles, and preview or download puzzle volumes.
 
 ## Getting Started
 
-First, run the development server:
+To run the application locally, follow these steps:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Install dependencies:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   ```bash
+   pnpm install
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+   > **Note:** If you prefer to use `npm` or `yarn`, you will need to delete the `pnpm-lock.yaml` file before installing dependencies.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Start the development server:
 
-## Learn More
+   ```bash
+   pnpm dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+3. Open [http://localhost:3000](http://localhost:3000) in your browser to access the app.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Add Data
 
-## Deploy on Vercel
+Navigate to the **Add Data** section by clicking on the "Add Data" link on the homepage or visiting `/build`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Add riddles and sayings to be used in generating your Figgerit puzzles.
+- Optionally associate riddles and sayings with a category.
+- Supports uploading data via CSV files.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Generate Puzzles
+
+Navigate to the **Generate Puzzles** section by clicking on the "Generate Puzzles" link on the homepage or visiting `/generatepuzzles`.
+
+- Generate Figgerit puzzles from the riddles and sayings you have added.
+- Choose the number of puzzles to generate and the amount of data to pull per attempt.
+- Associate puzzles with a specific volume.
+- Optionally filter riddles and sayings by category.
+
+### View Volumes
+
+Navigate to the **View Volumes** section by clicking on the "View Volumes" link on the homepage or visiting `/view`.
+
+- Preview puzzle volumes.
+- Download puzzle volumes as a PDF.
