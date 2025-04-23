@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Papa from "papaparse";
 
 import { RiddleFormValues, RiddleSchema } from "../lib/schemas/riddle";
 import { SayingFormValues, SayingSchema } from "../lib/schemas/saying";
@@ -37,19 +38,24 @@ export default function CSVUpload({ type }: CSVUploadProps) {
     reader.onload = async (e) => {
       try {
         const text = e.target?.result as string;
-        const rows = text.split("\n").filter((row) => row.trim() !== "");
 
-        const dataRows = rows.slice(1);
+        const { data, errors } = Papa.parse<string[]>(text, {
+          skipEmptyLines: true,
+        });
 
+        if (errors.length) {
+          throw new Error(`CSV parsing error: ${errors[0].message}`);
+        }
+
+        const rows = data.slice(1);
         const results: UploadResult = {
           success: 0,
           failed: 0,
           errors: [],
         };
 
-        for (let i = 0; i < dataRows.length; i++) {
-          const row = dataRows[i];
-          const columns = row.split(",").map((col) => col.trim());
+        for (let i = 0; i < rows.length; i++) {
+          const columns = rows[i];
 
           try {
             if (type === "riddle") {
@@ -60,9 +66,9 @@ export default function CSVUpload({ type }: CSVUploadProps) {
               }
 
               const riddleData: RiddleFormValues = {
-                clue: columns[0],
-                word: columns[1],
-                category: columns[2] || undefined,
+                clue: columns[0].trim(),
+                word: columns[1].trim(),
+                category: columns[2]?.trim() || undefined,
               };
 
               const validationResult = RiddleSchema.safeParse(riddleData);
@@ -85,8 +91,8 @@ export default function CSVUpload({ type }: CSVUploadProps) {
               }
 
               const sayingData: SayingFormValues = {
-                saying: columns[0],
-                category: columns[1] || undefined,
+                saying: columns[0].trim(),
+                category: columns[1]?.trim() || undefined,
               };
 
               const validationResult = SayingSchema.safeParse(sayingData);
@@ -118,7 +124,15 @@ export default function CSVUpload({ type }: CSVUploadProps) {
         setResult({
           success: 0,
           failed: 0,
-          errors: [{ row: 0, error: "Failed to process CSV file" }],
+          errors: [
+            {
+              row: 0,
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to process CSV file",
+            },
+          ],
         });
       } finally {
         setIsUploading(false);
