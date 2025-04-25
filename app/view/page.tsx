@@ -25,7 +25,7 @@ const PAPER_SIZES = {
 // Define our paper size type
 type PaperSizeKey = keyof typeof PAPER_SIZES;
 
-// Utility function to chunk puzzles into groups of 4
+// Utility function to chunk puzzles into groups
 const chunkArray = <T,>(arr: T[], size: number): T[][] => {
   return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
     arr.slice(i * size, i * size + size)
@@ -44,7 +44,9 @@ const Generate = () => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const titlePageRef = useRef<HTMLDivElement | null>(null);
-  const answersRef = useRef<HTMLDivElement | null>(null);
+  const answerPageRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const ANSWERS_PER_PAGE = 12; // This gives a good balance of readability and space efficiency
 
   // Check if we're on the client side and determine viewport width
   useEffect(() => {
@@ -67,6 +69,14 @@ const Generate = () => {
   // Get current paper dimensions based on selection
   const currentPaper = PAPER_SIZES[paperSize];
   const PAGE_RATIO = currentPaper.height / currentPaper.width;
+
+  // Initialize refs for answer pages whenever figgerits changes
+  useEffect(() => {
+    if (figgerits.length > 0) {
+      const numAnswerPages = Math.ceil(figgerits.length / ANSWERS_PER_PAGE);
+      answerPageRefs.current = Array(numAnswerPages).fill(null);
+    }
+  }, [figgerits]);
 
   const fetchFiggerits = async () => {
     try {
@@ -170,9 +180,12 @@ const Generate = () => {
         isFirstPage = false;
       }
 
-      // Answers section
-      if (answersRef.current) {
-        const canvas = await html2canvas(answersRef.current, canvasOptions);
+      // Answer pages - now handling multiple answer pages
+      for (let i = 0; i < answerPageRefs.current.length; i++) {
+        const page = answerPageRefs.current[i];
+        if (!page) continue;
+
+        const canvas = await html2canvas(page, canvasOptions);
         const imgData = canvas.toDataURL("image/jpeg", 1.0);
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -197,6 +210,9 @@ const Generate = () => {
   const toggleMobilePreview = () => {
     setShowMobileWarning(!showMobileWarning);
   };
+
+  // Calculate chunked answers for pagination
+  const answersChunks = chunkArray(figgerits, ANSWERS_PER_PAGE);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen space-y-8">
@@ -489,52 +505,66 @@ const Generate = () => {
               </div>
             ))}
 
-            {/* Answer Page - styled for current paper proportions */}
-            <div
-              ref={answersRef}
-              className="mx-auto border rounded shadow bg-white pdf-page"
-              style={{
-                width: "100%",
-                aspectRatio: `${currentPaper.width}/${currentPaper.height}`,
-                maxWidth: "800px",
-                boxSizing: "border-box",
-                padding: "20px",
-              }}
-            >
-              <h2 className="text-2xl font-bold mb-6 text-center">Answers</h2>
+            {/* Answer Pages - now paginated with multiple pages if needed */}
+            {answersChunks.map((chunk, pageIndex) => (
               <div
-                className="pdf-content"
+                key={`answer-page-${pageIndex}`}
+                ref={(el) => {
+                  answerPageRefs.current[pageIndex] = el;
+                }}
+                className="mx-auto border rounded shadow bg-white mb-8 pdf-page"
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
-                  gap: "1.5rem 1rem",
+                  width: "100%",
+                  aspectRatio: `${currentPaper.width}/${currentPaper.height}`,
+                  maxWidth: "800px",
+                  boxSizing: "border-box",
+                  padding: "20px",
                 }}
               >
-                {figgerits.map((figgerit, i) => (
-                  <div key={i} className="break-inside-avoid pdf-answer">
-                    <h3 className="font-semibold mb-1">Figgerit #{i + 1}</h3>
-                    <div className="mb-1">
-                      <span className="font-semibold">Words:</span>
-                      {/* Fixed answer list with better alignment */}
-                      <div className="ml-2 text-sm">
-                        {figgerit.matches.map((match, j) => (
-                          <div key={j} className="flex items-start">
-                            <span className="mr-1 min-w-4 text-right">
-                              {j + 1}.
-                            </span>
-                            <span>{match.answer}</span>
+                <h2 className="text-2xl font-bold mb-6 text-center">
+                  Answers {answersChunks.length > 1 ? `- Page ${pageIndex + 1}` : ""}
+                </h2>
+                <div
+                  className="pdf-content"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
+                    gap: "1.5rem 1rem",
+                  }}
+                >
+                  {chunk.map((figgerit, i) => {
+                    // Calculate the actual figgerit number
+                    const figgeritNumber = pageIndex * ANSWERS_PER_PAGE + i + 1;
+                    
+                    return (
+                      <div key={i} className="break-inside-avoid pdf-answer">
+                        <h3 className="font-semibold mb-1">
+                          Figgerit #{figgeritNumber}
+                        </h3>
+                        <div className="mb-1">
+                          <span className="font-semibold">Words:</span>
+                          {/* Fixed answer list with better alignment */}
+                          <div className="ml-2 text-sm">
+                            {figgerit.matches.map((match, j) => (
+                              <div key={j} className="flex items-start">
+                                <span className="mr-1 min-w-4 text-right">
+                                  {j + 1}.
+                                </span>
+                                <span>{match.answer}</span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        </div>
+                        <div className="text-sm">
+                          <span className="font-semibold">Solution:</span>{" "}
+                          {figgerit.saying.text}
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-sm">
-                      <span className="font-semibold">Solution:</span>{" "}
-                      {figgerit.saying.text}
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         </>
       )}
