@@ -68,7 +68,6 @@ const Generate = () => {
 
   // Get current paper dimensions based on selection
   const currentPaper = PAPER_SIZES[paperSize];
-  const PAGE_RATIO = currentPaper.height / currentPaper.width;
 
   // Initialize refs for answer pages whenever figgerits changes
   useEffect(() => {
@@ -139,9 +138,11 @@ const Generate = () => {
         windowWidth: 1200, // Force desktop-width rendering
         windowHeight: 1600, // Ensure enough height
         //Crucial for capturing all content
+         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onclone: (clonedDoc: any) => {
           // Force all elements to be visible in the clone
           const elements = clonedDoc.querySelectorAll(".grid");
+           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           elements.forEach((el: any) => {
             if (el instanceof HTMLElement) {
               el.style.display = "grid";
@@ -342,7 +343,7 @@ const Generate = () => {
                 onChange={(e) => setPaperSize(e.target.value as PaperSizeKey)}
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
               >
-                <option value="letter">US Letter (8.5" x 11")</option>
+                <option value="letter">US Letter (8.5&quot; x 11&quot;)</option>
                 <option value="a4">A4 (210mm x 297mm)</option>
               </select>
             </div>

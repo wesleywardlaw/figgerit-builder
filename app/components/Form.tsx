@@ -14,7 +14,7 @@ interface FormField<T> {
 interface FormProps<T extends FieldValues> {
   fields: FormField<T>[];
   schema: z.ZodType<T>;
-  onSubmit: (data: T) => Promise<{
+  onSubmit: (_data: T) => Promise<{
     errors?: Partial<Record<keyof T | "root", string[]>>;
     success?: boolean;
   }>;

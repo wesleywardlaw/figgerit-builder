@@ -38,7 +38,7 @@ const GeneratePuzzles = () => {
       } else {
         setError(result.error || "Failed to generate figgerits");
       }
-    } catch (err) {
+    } catch (_err) {
       setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);

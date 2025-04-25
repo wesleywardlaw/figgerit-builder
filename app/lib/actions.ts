@@ -19,6 +19,7 @@ type SubmitDataResult = {
 
 async function submitData<T>(
   data: T,
+   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Model: mongoose.Model<any>,
   Schema: ZodSchema<T>
 ): Promise<SubmitDataResult> {
@@ -88,6 +89,7 @@ export async function createFiggerits(
     }
 
     // Build the match query for sayings
+     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sayingMatchQuery: any = {
       $or: [{ volumes: { $exists: false } }, { volumes: { $nin: [volume] } }],
     };
@@ -104,6 +106,7 @@ export async function createFiggerits(
     }
 
     // Check if we have enough riddles before starting the main loop
+     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const riddleMatchQuery: any = {
       $or: [{ volumes: { $exists: false } }, { volumes: { $nin: [volume] } }],
     };
@@ -282,9 +285,11 @@ export async function getFiggeritsByVolume(
           text: String(plainDoc.saying.text || ""),
           _id: String(plainDoc.saying._id || ""),
         },
+         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         matches: plainDoc.matches.map((match: any) => ({
           answer: String(match.answer || ""),
           letterPositions: Array.isArray(match.letterPositions)
+           // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ? match.letterPositions.map((pos: any) => ({
                 letter: String(pos.letter || ""),
                 position: Number(pos.position || 0),

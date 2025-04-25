@@ -11,8 +11,8 @@ export function findCompleteFiggerit(
     console.log(`Saying length: ${cleanSaying.length}`);
     
     const solution: MatchResult[] = [];
-    let usedLetters = new Set<string>();
-    let usedPositions = new Set<number>();
+    const usedLetters = new Set<string>();
+    const usedPositions = new Set<number>();
     const letterMap = new Map<string, number[]>();
     
     // Create a map of letters to their positions in the saying

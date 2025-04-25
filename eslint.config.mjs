@@ -11,6 +11,25 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+
+  // This override targets both TS and JS files
+  {
+    files: ["**/*.{ts,tsx,js,jsx}"],
+    rules: {
+      // Disable base rule entirely (ESLint core)
+      "no-unused-vars": "off",
+
+      // Replace it with TypeScript-aware version
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
 ];
 
 export default eslintConfig;
