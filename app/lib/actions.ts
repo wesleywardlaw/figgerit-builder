@@ -116,7 +116,7 @@ export async function createFiggerits(
       { $sample: { size: riddlesPerAttempt } },
     ]).exec();
 
-    if (initialRiddles.length < 28) {
+    if (initialRiddles.length < numFiggerits*7) {
       console.log("Not enough riddles in database");
       return {
         success: false,
