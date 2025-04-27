@@ -14,13 +14,15 @@ To run the application locally, follow these steps:
 
    > **Note:** If you prefer to use `npm` or `yarn`, you will need to delete the `pnpm-lock.yaml` file before installing dependencies.
 
-2. Start the development server:
+2. Create .env.local file in base of project and put in value for MONGODB_URI so that your mongo collection can be accessed.
+
+3. Start the development server:
 
    ```bash
    pnpm dev
    ```
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser to access the app.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser to access the app.
 
 ## Features
 
@@ -47,3 +49,7 @@ Navigate to the **View Volumes** section by clicking on the "View Volumes" link 
 
 - Preview puzzle volumes.
 - Download puzzle volumes as a PDF.
+
+## Example
+
+[Figgerit Builder](https://figgerit-builder.vercel.app/)
