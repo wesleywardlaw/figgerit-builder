@@ -37,7 +37,7 @@ const Generate = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showTitlePage, setShowTitlePage] = useState(true);
-  const [volume, setVolume] = useState<number>(1);
+  const [volume, setVolume] = useState<string>("1");
   const [paperSize, setPaperSize] = useState<PaperSizeKey>("letter"); // Default to letter
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileWarning, setShowMobileWarning] = useState(false);
@@ -81,7 +81,7 @@ const Generate = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const result = await getFiggeritsByVolume(volume);
+      const result = await getFiggeritsByVolume(parseInt(volume));
 
       if (result.success && result.figgerits) {
         // Basic validation to ensure we have data
@@ -235,7 +235,7 @@ const Generate = () => {
               type="number"
               min="1"
               value={volume}
-              onChange={(e) => setVolume(parseInt(e.target.value) || 1)}
+              onChange={(e) => setVolume(e.target.value)}
               className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
               required
             />
@@ -432,7 +432,7 @@ const Generate = () => {
                   boxSizing: "border-box",
                 }}
               >
-                <TitlePage volumeNumber={volume} />
+                <TitlePage volumeNumber={parseInt(volume)} />
               </div>
             )}
 
