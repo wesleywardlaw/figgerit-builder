@@ -64,7 +64,7 @@ const GeneratePuzzles = () => {
             id="numFiggerits"
             name="numFiggerits"
             min="1"
-            defaultValue="6"
+            defaultValue="4"
             required
             className="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
