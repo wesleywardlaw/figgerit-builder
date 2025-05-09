@@ -96,8 +96,36 @@ function renderAnswer(
       lineCount++
     }
 
+    const subscriptToNormalMap = {
+      '₀': '0',
+      '₁': '1',
+      '₂': '2',
+      '₃': '3',
+      '₄': '4',
+      '₅': '5',
+      '₆': '6',
+      '₇': '7',
+      '₈': '8',
+      '₉': '9',
+    };
+
+    function convertSubscript(char:string) {
+      return subscriptToNormalMap[char as keyof typeof subscriptToNormalMap] || char;
+    }
+
+    function containsSubscript(str:string) {
+      return /[\u2080-\u2089]/.test(str);
+    }
     word.split("").forEach((char) => {
-      if (isNotLetter(char)) {
+      if(containsSubscript(char)) {
+        const convertedChar = convertSubscript(char)
+        // Subscript character
+        const fontSize = doc.getFontSize()
+        doc.setFontSize(fontSize - 2) // Adjust font size for subscript
+        doc.text(convertedChar, currentX, currentY + 1) // Adjust Y position for subscript
+        currentX += nonLetterSpacing  
+        doc.setFontSize(fontSize) // Reset font size
+      }else if (isNotLetter(char)) {
         // Non-letter character
         doc.text(char, currentX, currentY)
         currentX += nonLetterSpacing
