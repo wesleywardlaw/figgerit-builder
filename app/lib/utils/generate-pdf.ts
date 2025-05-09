@@ -518,9 +518,25 @@ function generateAnswerPages(
     // Ensure we have exactly 7 clues
     const cluesData = puzzle.data.slice(0, 7)
 
+    function normalizeSubscriptDigits(str: string): string {
+      const map: Record<string, string> = {
+        '₀': '0',
+        '₁': '1',
+        '₂': '2',
+        '₃': '3',
+        '₄': '4',
+        '₅': '5',
+        '₆': '6',
+        '₇': '7',
+        '₈': '8',
+        '₉': '9',
+      };
+      return str.replace(/[\u2080-\u2089]/g, char => map[char]);
+    }
+
     cluesData.forEach((item, clueIndex) => {
       // Wrap long answers if needed
-      const answerText = `${clueIndex + 1}. ${item.answer}`
+      const answerText = `${clueIndex + 1}. ${normalizeSubscriptDigits(item.answer)}`
       if (doc.getTextWidth(answerText) > columnWidth) {
         const wrappedY = wrapText(doc, answerText, x, currentY, columnWidth, paperSize === "letter" ? 3.5 : 4)
         currentY = wrappedY + (paperSize === "letter" ? 1.5 : 2)
