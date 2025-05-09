@@ -223,10 +223,12 @@ function isNotLetter(char: string): boolean {
 
 // Function to add a title page to the PDF
 async function addTitlePage(doc: jsPDF, volumeNumber: number): Promise<void> {
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
   // Create a temporary div to render the title page
   const titlePageContainer = document.createElement("div")
-  titlePageContainer.style.width = "210mm"
-  titlePageContainer.style.height = "297mm"
+  titlePageContainer.style.width = `${pageWidth}mm`
+  titlePageContainer.style.height = `${pageHeight}mm`
   titlePageContainer.style.position = "fixed"
   titlePageContainer.style.top = "-9999px"
   titlePageContainer.style.left = "-9999px"
@@ -286,13 +288,13 @@ async function addTitlePage(doc: jsPDF, volumeNumber: number): Promise<void> {
   try {
     // Convert the rendered component to canvas
     const canvas = await html2canvas(titlePageContainer, {
-      scale: 2, // Higher scale for better quality
+      scale: 1, // Higher scale for better quality
       backgroundColor: null,
     })
 
     // Add the canvas as an image to the PDF
-    const imgData = canvas.toDataURL("image/png")
-    doc.addImage(imgData, "PNG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight())
+    const imgData = canvas.toDataURL("image/jpeg")
+    doc.addImage(imgData, "JPEG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight())
   } finally {
     // Clean up
     document.body.removeChild(titlePageContainer)
